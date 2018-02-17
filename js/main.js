@@ -9,14 +9,13 @@ function generateDiv(name, body, color) {
             body +
         "        </div>\n" +
         "    </div>"
-    ).replace(/{name}/g, name)
+    ).replace(/{name}/g, name);
 }
 
 function generateDefaultDivBody(name) {
     return (
-        "<button class='waves-effect waves-light btn myBtn' onclick='{name}Obj.doEncrypt()'>encrypt</button>\n" +
-        "<button class='waves-effect waves-light btn myBtn' onclick='{name}Obj.doDecrypt()'>decrypt</button>\n"
-    ).replace(/{name}/g, name)
+        "<button class='waves-effect waves-light btn myBtn' onclick='{name}Obj.doConvertAll()'>convert</button>\n"
+    ).replace(/{name}/g, name);
 }
 
 function generateRandomMaterialColor() {
@@ -45,50 +44,99 @@ function generateRandomMaterialColor() {
 function PlainText(name) {
     this.name = name;
 
+    this.getText = function () {
+        var text_id = "#" + this.name + "Text";
+        return $(text_id).val();
+    };
+
     this.createHTML = function () {
-        $("#main").append(generateDiv(this.name))
+        $("#main").append(generateDiv(this.name));
     };
 
     this.updateText = function (text) {
         var text_id = "#" + this.name + "Text";
-        $(text_id).val(text)
+        $(text_id).val(text);
     };
 
     this.encrypt = function (obj) {
         return obj.str;
     };
 
-    this.doEncrypt = function () {
-        var text_id = "#" + this.name + "Text";
-        this.updateText(this.encrypt({"str": $(text_id).val()}))
+    this.doEncryptVal = function (val) {
+        this.updateText(this.encrypt({"str": val}));
     };
 
     this.decrypt = function (obj) {
-        return obj.str
+        return obj.str;
     };
 
     this.doDecrypt = function () {
         var text_id = "#" + this.name + "Text";
-        this.updateText(this.decrypt({"str": $(text_id).val()}))
+        var ans = this.decrypt({"str": $(text_id).val()});
+        this.updateText(ans);
+        return ans;
     };
+
+    this.doDecryptVal = function (val) {
+        this.updateText(this.decrypt({"str": val}));
+    };
+
+    this.doConvertAll = function () {
+        PlainTextObj.updateText(this.doDecrypt());
+        convertAll();
+    }
 }
 
 function Base64() {
     PlainText.call(this, "Base64");
 
     this.encrypt = function (obj) {
-        return btoa(obj.str);
+        return unicodeBase64Encode(obj.str);
     };
 
     this.decrypt = function (obj) {
-        return atob(obj.str)
+        return unicodeBase64Decode(obj.str);
+    };
+}
+
+function UrlEncoding() {
+    PlainText.call(this, "UrlEncoding");
+
+    this.encrypt = function (obj) {
+        return encodeURI(obj.str);
+    };
+
+    this.decrypt = function (obj) {
+        return decodeURI(obj.str);
     };
 }
 
 var PlainTextObj = new PlainText("PlainText");
 var Base64Obj = new Base64();
+var UrlEncodingObj = new UrlEncoding();
+
+var algorithms = [PlainTextObj, Base64Obj, UrlEncodingObj];
+
+function convertAll() {
+    algorithms.forEach(function (value) { value.doEncryptVal(PlainTextObj.getText()) });
+}
+
 
 $(document).ready(function(){
-    PlainTextObj.createHTML();
-    Base64Obj.createHTML();
+    algorithms.forEach(function (value) { value.createHTML() });
 });
+
+
+function unicodeBase64Encode(text) {
+    /* from https://www.base64decode.org/ */
+    return window.btoa(encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+        return String.fromCharCode("0x" + p1)
+    }))
+}
+
+function unicodeBase64Decode(text) {
+    /* from https://www.base64decode.org/ */
+    return decodeURIComponent(Array.prototype.map.call(window.atob(text), function(c) {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+    }).join(""))
+}
