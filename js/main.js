@@ -36,8 +36,22 @@ function PlainText(name) {
     };
 }
 
+function Base64() {
+    PlainText.call(this, "Base64");
+
+    this.encrypt = function (obj) {
+        return btoa(obj.str);
+    };
+
+    this.decrypt = function (obj) {
+        return atob(obj.str)
+    };
+}
+
 var PlainTextObj = new PlainText("PlainText");
+var Base64Obj = new Base64();
 
 $(document).ready(function(){
     PlainTextObj.createHTML();
+    Base64Obj.createHTML();
 });
