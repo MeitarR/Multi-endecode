@@ -6,6 +6,11 @@ main {
     text-align: center;
 }
 
+.myBtn {
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
 .card {
     background: #fff;
     border-radius: 5px;
@@ -20,6 +25,7 @@ main {
 }
 
 .bottom-content {
+    width: 100%;
     margin: 5px;
     display: inline-flex;
     flex-flow: row;
